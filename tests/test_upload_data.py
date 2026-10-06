@@ -150,16 +150,24 @@ with tempfile.TemporaryDirectory() as tmp:
         "a data_dir that does not exist says so",
     )
 
-# --- the unedited template exits cleanly -------------------------------
-# The shipped catalog.publish.yaml sets no data_dir, so main() must report
-# that instead of raising a traceback.
+# --- a config with no data_dir exits cleanly ---------------------------
+# main() must report the missing key instead of raising a traceback. Stub
+# the config rather than read the repository's own: a catalog that stages
+# data sets data_dir, and this check has to hold for that catalog too.
 argv = sys.argv
 sys.argv = ["upload_data.py"]
+real_load = upload_data.load_config
+upload_data.load_config = lambda *a, **k: {
+    "write_prefix": "s3://a-bucket/a/prefix",
+    "public_base": "https://example.org/a/prefix",
+    "publish_dir": "catalog",
+}
 try:
     message = exit_message(upload_data.main)
 finally:
+    upload_data.load_config = real_load
     sys.argv = argv
-check("data_dir" in message, f"the template exits on data_dir: {message!r}")
+check("data_dir" in message, f"a config with no data_dir exits on it: {message!r}")
 
 # --- the sentinel guard ------------------------------------------------
 check(
