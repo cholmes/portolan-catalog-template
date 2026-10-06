@@ -47,8 +47,12 @@ if root_json.is_file():
     if "assets" in doc:
         err("a Catalog carries no assets; move them onto a Collection")
     rels = [link.get("rel") for link in doc.get("links", [])]
-    if "self" in rels:
-        err("Portolan forbids a self link; a static catalog must be movable")
+    # PORTO-CORE-081 recommends an absolute self link on the root catalog of a
+    # published catalog. An earlier draft forbade the link. STAC requires a
+    # self link to be absolute wherever it appears, so that is what is checked.
+    for link in doc.get("links", []):
+        if link.get("rel") == "self" and "://" not in link.get("href", ""):
+            err("a self link must be absolute; build it from public_base")
     if "root" not in rels:
         err("the root catalog has no rel:root link")
 else:

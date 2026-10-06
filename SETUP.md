@@ -23,6 +23,21 @@ Edit `catalog.publish.yaml`. Replace all three sentinel values.
 `tools/publish.py` refuses to upload while any sentinel survives, and it checks
 before making any AWS call, so you can test this without credentials.
 
+Then add a `self` link to `catalog/catalog.json`, built from `public_base`:
+
+```json
+{
+  "rel": "self",
+  "href": "https://example.org/prefix/catalog.json",
+  "type": "application/json"
+}
+```
+
+A catalog served from one fixed URL should record that URL, so a reader
+holding a downloaded copy can see where it came from and a validator has a
+base to resolve absolute links against. `tools/publish.py` does not write this
+link, so it belongs in the tracked file. The href has to be absolute.
+
 ## 2. Name the catalog
 
 Edit `catalog/catalog.json`. Replace `id`, `title`, and the `description`.
